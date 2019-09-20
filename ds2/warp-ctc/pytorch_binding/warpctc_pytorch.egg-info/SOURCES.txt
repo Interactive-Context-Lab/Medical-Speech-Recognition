@@ -1,0 +1,8 @@
+setup.cfg
+setup.py
+src/binding.cpp
+warpctc_pytorch/__init__.py
+warpctc_pytorch.egg-info/PKG-INFO
+warpctc_pytorch.egg-info/SOURCES.txt
+warpctc_pytorch.egg-info/dependency_links.txt
+warpctc_pytorch.egg-info/top_level.txt

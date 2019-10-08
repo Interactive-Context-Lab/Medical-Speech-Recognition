@@ -1,4 +1,4 @@
-# Medical-Speech-Recognition
+# Medical Speech Recognition
 本網站的程式經由參考並修改 https://github.com/SeanNaren/deepspeech.pytorch 的內容獲得。
 # 安裝
 1. 安裝 [pytorch](https://github.com/pytorch/pytorch#installation)

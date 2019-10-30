@@ -87,3 +87,6 @@ python test_iter.py --test-manifest /dataset/test_manifest.csv --E2C /dataset/E2
 * cuda : 使用 GPU 進行測試
 
 可使用 python test_iter.py -\-help 獲得更多的參數及選項
+
+# Demo影片
+[![](http://img.youtube.com/vi/AQ78hGx3usc/0.jpg)](http://www.youtube.com/watch?v=AQ78hGx3usc "")

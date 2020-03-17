@@ -11,7 +11,7 @@
 
 5. 安裝 pytorch audio:
 ```
-sudo apt-get install sox libsox-dev libsox-fmt-allg
+sudo apt-get install sox libsox-dev libsox-fmt-all
 git clone https://github.com/pytorch/audio.git
 cd audio
 python setup.py install

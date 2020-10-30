@@ -16,11 +16,15 @@ The output file "E2C.json", and "C2E.json" are used for training the language mo
 import os
 import json
 
-
-data_manifest = "/data2/punctuation_B/preprocessed/manifest.csv"
-word2syllable = "/data2/data_B/word2syllable.txt"
-syllable_label_dir = "/data2/punctuation_B/preprocessed/syllable_label"
-out_dir = "/data2/punctuation_B/preprocessed"
+#############################
+#   Mini dataset example
+#############################
+# input path
+data_manifest = "../mini_dataset/preprocessed/manifest.csv"
+word2syllable = "../mini_dataset/labeled_audio/word2syllable.txt"
+# output path
+syllable_label_dir = "../mini_dataset/preprocessed/syllable_label" # need to create folder your self
+out_dir = "../mini_dataset/preprocessed"
 
 def sep_seq(seq):
     """

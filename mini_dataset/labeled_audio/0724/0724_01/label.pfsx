@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<preferences version="1.1"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.mpi.nl/tools/elan/Prefs_v1.1.xsd">
+    <pref key="FrameSize">
+        <Object class="java.awt.Dimension">800,601</Object>
+    </pref>
+    <pref key="LayoutManager.SelectedTabIndex">
+        <Int>1</Int>
+    </pref>
+    <pref key="LayoutManager.VisibleMultiTierViewer">
+        <String>mpi.eudico.client.annotator.viewer.TimeLineViewer</String>
+    </pref>
+    <pref key="TextViewer.TierName">
+        <String>default</String>
+    </pref>
+    <pref key="MultiTierViewer.ActiveTierName">
+        <String>default</String>
+    </pref>
+    <pref key="SelectionEndTime">
+        <Long>49595</Long>
+    </pref>
+    <pref key="SignalViewer.ZoomLevel">
+        <Float>109.0</Float>
+    </pref>
+    <pref key="LayoutManager.CurrentMode">
+        <Int>1</Int>
+    </pref>
+    <prefGroup key="CommentViewer.Columns">
+        <pref key="首字母">
+            <Int>75</Int>
+        </pref>
+        <pref key="结束日期">
+            <Int>75</Int>
+        </pref>
+        <pref key="层">
+            <Int>75</Int>
+        </pref>
+        <pref key="接受者">
+            <Int>0</Int>
+        </pref>
+        <pref key="开始时间">
+            <Int>75</Int>
+        </pref>
+        <pref key="执行过程">
+            <Int>75</Int>
+        </pref>
+        <pref key="发送者">
+            <Int>0</Int>
+        </pref>
+        <pref key="创建日期">
+            <Int>75</Int>
+        </pref>
+        <pref key="修改日期">
+            <Int>75</Int>
+        </pref>
+        <pref key="注释">
+            <Int>75</Int>
+        </pref>
+    </prefGroup>
+    <prefList key="CommentViewer.Columns.Order">
+        <String>开始时间</String>
+        <String>结束日期</String>
+        <String>层</String>
+        <String>首字母</String>
+        <String>注释</String>
+        <String>执行过程</String>
+        <String>发送者</String>
+        <String>接受者</String>
+        <String>创建日期</String>
+        <String>修改日期</String>
+    </prefList>
+    <pref key="GridViewer.TierName">
+        <String>default</String>
+    </pref>
+    <pref key="MediaControlVolume">
+        <Float>1.0</Float>
+    </pref>
+    <pref key="ActiveRecognizerName">
+        <String>AAM-LR Phone level audio segmentation</String>
+    </pref>
+    <pref key="FrameLocation">
+        <Object class="java.awt.Point">49,119</Object>
+    </pref>
+    <pref key="TimeLineViewer.ZoomLevel">
+        <Float>109.0</Float>
+    </pref>
+    <pref key="DetachedEditor.Bounds">
+        <Object class="java.awt.Rectangle">618,282,300,300</Object>
+    </pref>
+    <pref key="SelectionBeginTime">
+        <Long>41851</Long>
+    </pref>
+    <pref key="GridViewer.ColumnBeginTime.Visible">
+        <Boolean>true</Boolean>
+    </pref>
+    <prefGroup key="AAM-LR Phone level audio segmentation">
+        <pref key="base_url">
+            <String>http://lux17.mpi.nl/aamlr/</String>
+        </pref>
+        <pref key="source_audio">
+            <String>///D:/錄音檔/0724/0724_01/2018_07_24_16_47_57.wav</String>
+        </pref>
+    </prefGroup>
+    <pref key="TimeScaleBeginTime">
+        <Long>41705</Long>
+    </pref>
+    <pref key="MediaTime">
+        <Long>41851</Long>
+    </pref>
+    <prefGroup key="TierColors">
+        <pref key="default">
+            <Object class="java.awt.Color">0,0,160</Object>
+        </pref>
+    </prefGroup>
+    <prefList key="MultiTierViewer.TierOrder">
+        <String>default</String>
+    </prefList>
+    <pref key="LayoutManager.SplitPaneDividerLocation">
+        <Int>70</Int>
+    </pref>
+    <prefList key="CommentViewer.Columns.Hidden">
+        <String>接受者</String>
+        <String>发送者</String>
+    </prefList>
+</preferences>

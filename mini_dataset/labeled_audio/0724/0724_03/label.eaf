@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ANNOTATION_DOCUMENT AUTHOR="" DATE="2019-04-19T16:23:40+08:00" FORMAT="3.0" VERSION="3.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.mpi.nl/tools/elan/EAFv3.0.xsd">
+    <HEADER MEDIA_FILE="" TIME_UNITS="milliseconds">
+        <MEDIA_DESCRIPTOR MEDIA_URL="file:///D:/錄音檔/0724/0724_03/2018_07_24_16_49_39.wav" MIME_TYPE="audio/x-wav" RELATIVE_MEDIA_URL="./2018_07_24_16_49_39.wav"/>
+        <PROPERTY NAME="URN">urn:nl-mpi-tools-elan-eaf:7091ae0c-7a44-46b3-848e-341164ec1b29</PROPERTY>
+        <PROPERTY NAME="lastUsedAnnotationId">8</PROPERTY>
+    </HEADER>
+    <TIME_ORDER>
+        <TIME_SLOT TIME_SLOT_ID="ts1" TIME_VALUE="490"/>
+        <TIME_SLOT TIME_SLOT_ID="ts2" TIME_VALUE="5910"/>
+        <TIME_SLOT TIME_SLOT_ID="ts3" TIME_VALUE="6043"/>
+        <TIME_SLOT TIME_SLOT_ID="ts4" TIME_VALUE="11555"/>
+        <TIME_SLOT TIME_SLOT_ID="ts5" TIME_VALUE="11606"/>
+        <TIME_SLOT TIME_SLOT_ID="ts6" TIME_VALUE="19380"/>
+        <TIME_SLOT TIME_SLOT_ID="ts7" TIME_VALUE="19527"/>
+        <TIME_SLOT TIME_SLOT_ID="ts8" TIME_VALUE="30391"/>
+        <TIME_SLOT TIME_SLOT_ID="ts9" TIME_VALUE="30567"/>
+        <TIME_SLOT TIME_SLOT_ID="ts10" TIME_VALUE="33540"/>
+        <TIME_SLOT TIME_SLOT_ID="ts11" TIME_VALUE="34661"/>
+        <TIME_SLOT TIME_SLOT_ID="ts12" TIME_VALUE="40202"/>
+        <TIME_SLOT TIME_SLOT_ID="ts13" TIME_VALUE="41013"/>
+        <TIME_SLOT TIME_SLOT_ID="ts14" TIME_VALUE="43459"/>
+        <TIME_SLOT TIME_SLOT_ID="ts15" TIME_VALUE="46972"/>
+        <TIME_SLOT TIME_SLOT_ID="ts16" TIME_VALUE="58607"/>
+    </TIME_ORDER>
+    <TIER LINGUISTIC_TYPE_REF="default-lt" TIER_ID="default">
+        <ANNOTATION>
+            <ALIGNABLE_ANNOTATION ANNOTATION_ID="a1" TIME_SLOT_REF1="ts1" TIME_SLOT_REF2="ts2">
+                <ANNOTATION_VALUE>右腳燙傷{cellulitis}，沒有跌倒、沒有壓瘡、可以正常吃、沒有過敏史</ANNOTATION_VALUE>
+            </ALIGNABLE_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <ALIGNABLE_ANNOTATION ANNOTATION_ID="a2" TIME_SLOT_REF1="ts3" TIME_SLOT_REF2="ts4">
+                <ANNOTATION_VALUE>然後他是從急診上來，診斷是右下肢燙傷、蜂窩性組織炎</ANNOTATION_VALUE>
+            </ALIGNABLE_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <ALIGNABLE_ANNOTATION ANNOTATION_ID="a3" TIME_SLOT_REF1="ts5" TIME_SLOT_REF2="ts6">
+                <ANNOTATION_VALUE>然後自訴血管阻塞，有{old} TB，{appendicitis}開過、雙側卵巢開過、腦出血的過去病史</ANNOTATION_VALUE>
+            </ALIGNABLE_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <ALIGNABLE_ANNOTATION ANNOTATION_ID="a4" TIME_SLOT_REF1="ts7" TIME_SLOT_REF2="ts8">
+                <ANNOTATION_VALUE>那因為前三天前被蒸汽管燙傷右大腿及小腿到急診，然後傷口就是{Silvadene}藥膏使用</ANNOTATION_VALUE>
+            </ALIGNABLE_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <ALIGNABLE_ANNOTATION ANNOTATION_ID="a5" TIME_SLOT_REF1="ts9" TIME_SLOT_REF2="ts10">
+                <ANNOTATION_VALUE>然後急診打過抗生素、藥膏、抽血</ANNOTATION_VALUE>
+            </ALIGNABLE_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <ALIGNABLE_ANNOTATION ANNOTATION_ID="a6" TIME_SLOT_REF1="ts11" TIME_SLOT_REF2="ts12">
+                <ANNOTATION_VALUE>那個血糖一百一十一，鉀三點三，{Troponin} I是零點零一</ANNOTATION_VALUE>
+            </ALIGNABLE_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <ALIGNABLE_ANNOTATION ANNOTATION_ID="a7" TIME_SLOT_REF1="ts13" TIME_SLOT_REF2="ts14">
+                <ANNOTATION_VALUE>建議住院治療、打抗生素</ANNOTATION_VALUE>
+            </ALIGNABLE_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <ALIGNABLE_ANNOTATION ANNOTATION_ID="a8" TIME_SLOT_REF1="ts15" TIME_SLOT_REF2="ts16">
+                <ANNOTATION_VALUE>因為病人本身有子宮，子宮的那個CA，所以他有藥物在使用，那醫生是說自備藥自服。</ANNOTATION_VALUE>
+            </ALIGNABLE_ANNOTATION>
+        </ANNOTATION>
+    </TIER>
+    <LINGUISTIC_TYPE GRAPHIC_REFERENCES="false" LINGUISTIC_TYPE_ID="default-lt" TIME_ALIGNABLE="true"/>
+    <CONSTRAINT DESCRIPTION="Time subdivision of parent annotation's time interval, no time gaps allowed within this interval" STEREOTYPE="Time_Subdivision"/>
+    <CONSTRAINT DESCRIPTION="Symbolic subdivision of a parent annotation. Annotations refering to the same parent are ordered" STEREOTYPE="Symbolic_Subdivision"/>
+    <CONSTRAINT DESCRIPTION="1-1 association with a parent annotation" STEREOTYPE="Symbolic_Association"/>
+    <CONSTRAINT DESCRIPTION="Time alignable annotations within the parent annotation's time interval, gaps are allowed" STEREOTYPE="Included_In"/>
+</ANNOTATION_DOCUMENT>

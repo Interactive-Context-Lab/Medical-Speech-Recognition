@@ -19,25 +19,18 @@ import random
 import librosa
 import json
 
-# data_manifest = "/data2/data_B/preprocessed/syllable_manifest.csv"
-# E2C_file = "/data2/data_B/preprocessed/E2C.json"
-# splice_manifest = "/data2/data_B/splice_manifest.csv"
-# lm_cmd_path = "/home/ee303/Downloads/kenlm/build/bin/lmplz"
-# out_file = "/data2/data_B/5-fold"
 
-# data_manifest = "/data2/AandB/syllable_manifest.csv"
-# E2C_file = "/data2/AandB/E2C.json"
-# splice_manifest = "/data2/data_B/splice_manifest.csv"
-# lm_cmd_path = "/home/ee303/Downloads/kenlm/build/bin/lmplz"
-# out_file = "/data2/AandB/5fold"
-
-data_manifest = "/data2/punctuation_B/preprocessed/syllable_manifest.csv"
-E2C_file = "/data2/punctuation_B/preprocessed/E2C.json"
-splice_manifest = "/data2/data_B/splice_manifest.csv"
-lm_cmd_path = "/home/ee303/Downloads/kenlm/build/bin/lmplz"
-out_file = "/data2/punctuation_B/5fold"
-
-
+#############################
+#   Mini dataset example
+#############################
+# Input path
+data_manifest = "../mini_dataset/preprocessed/syllable_manifest.csv"
+E2C_file = "../mini_dataset/preprocessed/E2C.json"
+# no file to use (if you have it so use it)
+# splice_manifest = ""
+lm_cmd_path = "../third_party/kenlm/build/bin/lmplz"
+# Output path
+out_file = "../mini_dataset/5fold"
 
 def sep_seq(seq):
     """
@@ -180,17 +173,17 @@ for i in range(5):
                 roll_audio(output_file)
                 f.write(output_file + "," + label_file + "\n")
         # splice augmentation
-        with open(splice_manifest, "r") as sf:
-            splice_files = sf.readlines()
-        splice_files = [a.strip()for a in splice_files]
-        for sf in splice_files:
-            f.write(sf + "\n")
-            splice_label = sf.split(",")[1]
-            with open(splice_label, "r") as sl:
-                splice_label = sl.readlines()[0].strip()
-            for k in sep_seq(label):
-                if k not in label_kinds:
-                    label_kinds.append(k)
+        # with open(splice_manifest, "r") as sf:
+        #     splice_files = sf.readlines()
+        # splice_files = [a.strip()for a in splice_files]
+        # for sf in splice_files:
+        #     f.write(sf + "\n")
+        #     splice_label = sf.split(",")[1]
+        #     with open(splice_label, "r") as sl:
+        #         splice_label = sl.readlines()[0].strip()
+        #     for k in sep_seq(label):
+        #         if k not in label_kinds:
+        #             label_kinds.append(k)
 
     # save label categories
     label_kinds.sort()

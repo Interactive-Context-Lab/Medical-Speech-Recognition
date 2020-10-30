@@ -23,5 +23,5 @@
 * Provide a `mini_dataset` to implement the scripts
 #### Areas of imporvement
 * Remove the useless scripts
-* Rewrite the `README.md` file to describe installation details, training and testing setiings.
-* Add `CHANGELOG.md` file to show the details.
+* Rewrite the `README.md` file to describe installation details, training and testing setiings
+* Add `CHANGELOG.md` file to show the details

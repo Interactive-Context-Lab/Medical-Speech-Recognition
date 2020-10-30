@@ -1,11 +1,21 @@
 # Medical Speech Recognition Model
-[TOC]
+* [Overview](#Overview)
+* [Intallation](#Intallation)
+    * [Hardware Information](#Hardware-Information)
+    * [Software Requirements](#Software-Requirements)
+    * [Install Dependencies](#Install-Dependencies)
+* [Dataset](#Dataset)
+* [Preprocessing](#Preprocessing)
+* [Training](#Training)
+* [Testing](#Testing)
+
+
 ## Overview
 #### The main features:
 * In this repository, we have developed a medical speech recognition model for recording speeches during nursing shift handovers.
 * A nursing handover dataset has been collected. And this dataset contains labeled audio speeches recorded from nursing stations.
 #### Base:
-* The model is based on [Deep Speech 2](https://github.com/SeanNaren/deepspeech.pytorch), and the **changes are in CHANGELOG.md**, and you can check it for all the details.
+* The model is based on [Deep Speech 2](https://github.com/SeanNaren/deepspeech.pytorch), and the **changes are in [CHANGELOG.md](CHANGELOG.md)**, and you can check it for all the details.
 
 
 ## Intallation
@@ -150,7 +160,6 @@ There are three steps to preprocess dataset follow by these three scripts, and *
 `create_manifest.py` This script generates manifest (without data augmentation), language model, and label categories. -->
 
 ## Trainning
-### Model Training
 The following is the command line for training `mini_dataset` example:
 ```
 python train.py --train-manifest ../mini_dataset/5fold/1/train_manifest.csv --val-manifest ../mini_dataset/5fold/1/test_manifest.csv --labels-path ../mini_dataset/5fold/1/label.json --batch-size 16 --epochs 150 --lr 5e-5 --rnn-type lstm --hidden-size 512 --layernorm --spec-aug --cuda --checkpoint --save-folder ../mini_dataset/5fold/1/models --model-path ../mini_dataset/5fold/1/models/deepspeech_final.pth
@@ -189,8 +198,8 @@ python test_iter.py --test-manifest ../mini_dataset/5fold/1/test_manifest.csv --
 * **decoder**: choose one of methods to decode
     * **greedy (greedy decoder)**
     * **beam (beam search decoder)**: If you use beam to be the decoder, you have to set the following parameters.
-	    * **lm-path**: path to langauge model (have to use .arpa file generate by kenlm -**Bug to fix**)
-	    * **beam-width**, **alpha**, **beta**
+        * **lm-path**: path to langauge model (have to use .arpa file generate by kenlm -**Bug to fix**)
+        * **beam-width**, **alpha**, **beta**
 * **cuda**: use GPU for testing
 
 Use `python test_iter.py -\-help` to get more parameters and options.
@@ -198,7 +207,4 @@ Use `python test_iter.py -\-help` to get more parameters and options.
 
 
 ## Demo
-<iframe width="100%" height="450" src="https://www.youtube.com/embed/AQ78hGx3usc" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-
-
-
+[![影片連結](http://img.youtube.com/vi/AQ78hGx3usc/0.jpg)](http://www.youtube.com/watch?v=AQ78hGx3usc "")

@@ -11,7 +11,7 @@ from warpctc_pytorch import CTCLoss
 from data.data_loader import AudioDataLoader, SpectrogramDataset, BucketingSampler, DistributedBucketingSampler
 from data.utils import reduce_tensor
 from decoder import GreedyDecoder
-from model import DeepSpeech, supported_rnns
+from model import DeepSpeech, supported_rnns, FinetuningModel
 import os
 
 parser = argparse.ArgumentParser(description='DeepSpeech training')
@@ -78,6 +78,10 @@ parser.add_argument('--spec-aug', dest='spec_aug', action='store_true', help='us
 parser.add_argument('--layernorm', dest='layernorm', action='store_true', help='use layer normalization')
 parser.add_argument('--gpu-num', default=0, type=int, help='the number of gpu to work')
 
+##add by Angel
+parser.add_argument('--finetune-continue', dest='finetune_continue', action='store_true',
+                    help='Contiune training the finetuning model from checkpoint "continue_from"')
+
 torch.manual_seed(123456)
 torch.cuda.manual_seed_all(123456)
 
@@ -133,27 +137,42 @@ if __name__ == '__main__':
         viz_window = None
         epochs = torch.arange(1, args.epochs + 1)
     if args.tensorboard and main_proc:
-        os.makedirs(args.log_dir, exist_ok=True)
-        from tensorboardX import SummaryWriter
+        if not args.finetune:
+            os.makedirs(args.log_dir, exist_ok=True)
+            from tensorboardX import SummaryWriter
 
-        tensorboard_writer = SummaryWriter(args.log_dir)
+            tensorboard_writer = SummaryWriter(args.log_dir)
+        else:
+            os.makedirs(args.log_dir, exist_ok=True)
+            from tensorboardX import SummaryWriter
+
+            tensorboard_writer = SummaryWriter(args.log_dir)
     os.makedirs(save_folder, exist_ok=True)
 
     avg_loss, start_epoch, start_iter = 0, 0, 0
     if args.continue_from:  # Starting from previous model
         print("Loading checkpoint model %s" % args.continue_from)
         package = torch.load(args.continue_from, map_location=lambda storage, loc: storage)
-        model = DeepSpeech.load_model_package(package)
-        labels = DeepSpeech.get_labels(model)
-        audio_conf = DeepSpeech.get_audio_conf(model)
-        parameters = model.parameters()
-        # optimizer = torch.optim.SGD(parameters, lr=args.lr,
-        #                             momentum=args.momentum, nesterov=True)
-        optimizer = torch.optim.Adam(parameters, lr=args.lr)
+        if not args.finetune_continue:
+            model = DeepSpeech.load_model_package(package)
+            audio_conf = DeepSpeech.get_audio_conf(model)
+            parameters = model.parameters()
+        else:
+            model = FinetuningModel.load_model_package(package)
+            audio_conf = FinetuningModel.get_audio_conf(model)
+            parameters = model.parameters()
 
         if not args.finetune:  # Don't want to restart training
+            if not args.finetune_continue:
+                labels = DeepSpeech.get_labels(model)
+                optimizer = torch.optim.Adam(parameters, lr=args.lr)
+            else:
+                labels = FinetuningModel.get_labels(model)
+                optimizer = torch.optim.Adam(parameters, lr=args.lr)
+
             if args.cuda:
                 model.cuda()
+
             optimizer.load_state_dict(package['optim_dict'])
             start_epoch = int(package.get('epoch', 1)) - 1  # Index start at 0 for training
             start_iter = package.get('iteration', None)
@@ -187,6 +206,47 @@ if __name__ == '__main__':
                         'Avg CER': cer_results[i]
                     }
                     tensorboard_writer.add_scalars(args.id, values, i + 1)
+        else: #fine tune
+            if not args.finetune_continue:  # continue the finetuning model
+                with open(args.labels_path) as label_file:
+                    labels = json.load(label_file)
+
+                finetuning_model = FinetuningModel(rnn_hidden_size=package['hidden_size'],
+                                                   nb_layers=package['hidden_layers'],
+                                                   labels=labels,
+                                                   rnn_type=supported_rnns[args.rnn_type.lower()],
+                                                   audio_conf=audio_conf,
+                                                   bidirectional=args.bidirectional,
+                                                   layernorm=args.layernorm)
+                #copy the params of layers befor FC
+                for name, params in model.named_parameters():
+                    params_name = name
+                    if params_name in finetuning_model.state_dict():
+                        # print(model.state_dict()[params_name])
+                        # copy params to new model
+                        finetuning_model.state_dict()[params_name].copy_(model.state_dict()[params_name])
+
+            # all params for finetuning
+            part = 0
+            para_optim = []
+            for k in finetuning_model.children():
+                part += 1
+                for param in k.parameters():
+                    para_optim.append(param)
+            optimizer = torch.optim.Adam(para_optim, lr=args.lr)
+
+
+            if main_proc and args.tensorboard and \
+                            package[
+                                'loss_results'] is not None and start_epoch > 0:  # Previous scores to tensorboard logs
+                for i in range(start_epoch):
+                    values = {
+                        'Avg Train Loss': loss_results[i],
+                        'Avg WER': wer_results[i],
+                        'Avg CER': cer_results[i]
+                    }
+                    tensorboard_writer.add_scalars(args.id, values, i + 1)
+
     else:
         with open(args.labels_path) as label_file:
             labels = json.load(label_file)
@@ -212,12 +272,14 @@ if __name__ == '__main__':
         # optimizer = torch.optim.SGD(parameters, lr=args.lr,
         #                             momentum=args.momentum, nesterov=True)
         optimizer = torch.optim.Adam(parameters, lr=args.lr)
+
     criterion = CTCLoss()
     decoder = GreedyDecoder(labels)
     train_dataset = SpectrogramDataset(audio_conf=audio_conf, manifest_filepath=args.train_manifest, labels=labels,
-                                       normalize=True, augment=args.augment)
+                                       normalize=True, augment=False)
     test_dataset = SpectrogramDataset(audio_conf=audio_conf, manifest_filepath=args.val_manifest, labels=labels,
                                       normalize=True, augment=False)
+
     if not args.distributed:
         train_sampler = BucketingSampler(train_dataset, batch_size=args.batch_size)
     else:
@@ -233,20 +295,34 @@ if __name__ == '__main__':
         train_sampler.shuffle(start_epoch)
 
     if args.cuda:
-        model.cuda()
+        if not args.finetune:
+            model.cuda()
+        else:
+            finetuning_model.cuda()
         if args.distributed:
-            model = torch.nn.parallel.DistributedDataParallel(model,
-                                                              device_ids=(int(args.gpu_rank),) if args.rank else None)
-
-    print(model)
-    print("Number of parameters: %d" % DeepSpeech.get_param_size(model))
+            if not args.finetune:
+                model = torch.nn.parallel.DistributedDataParallel(model,
+                                                                  device_ids=(int(args.gpu_rank),) if args.rank else None)
+            else:
+                finetuning_model = torch.nn.parallel.DistributedDataParallel(finetuning_model,
+                                                                             device_ids=(int(args.gpu_rank),) if args.rank else None)
+    if not args.finetune:
+        print("Number of parameters: %d" % DeepSpeech.get_param_size(model))
+    else:
+        print("Number of parameters: %d" % FinetuningModel.get_param_size(finetuning_model))
 
     batch_time = AverageMeter()
     data_time = AverageMeter()
     losses = AverageMeter()
 
     for epoch in range(start_epoch, args.epochs):
-        model.train()
+        if not args.finetune:
+            model.train()
+        else:
+            for name, para in finetuning_model.named_parameters():
+                print(name, torch.max(para))
+            finetuning_model.train()
+
         end = time.time()
         start_epoch_time = time.time()
         for i, (data) in enumerate(train_loader, start=start_iter):
@@ -260,7 +336,12 @@ if __name__ == '__main__':
             if args.cuda:
                 inputs = inputs.cuda()
 
-            out, output_sizes = model(inputs, input_sizes)
+            if not args.finetune:
+                out, output_sizes = model(inputs, input_sizes)
+
+            else:
+                out, output_sizes = finetuning_model(inputs, input_sizes)
+
             out = out.transpose(0, 1)  # TxNxH
 
             loss = criterion(out, targets, output_sizes, target_sizes)
@@ -282,7 +363,10 @@ if __name__ == '__main__':
             optimizer.zero_grad()
             loss.backward()
 
-            torch.nn.utils.clip_grad_norm_(model.parameters(), args.max_norm)
+            if not args.finetune:
+                torch.nn.utils.clip_grad_norm_(model.parameters(), args.max_norm)
+            else:
+                torch.nn.utils.clip_grad_norm_(finetuning_model.parameters(), args.max_norm)
             # SGD step
             optimizer.step()
 
@@ -298,10 +382,19 @@ if __name__ == '__main__':
             if args.checkpoint_per_batch > 0 and i > 0 and (i + 1) % args.checkpoint_per_batch == 0 and main_proc:
                 file_path = '%s/deepspeech_checkpoint_epoch_%d_iter_%d.pth' % (save_folder, epoch + 1, i + 1)
                 print("Saving checkpoint model to %s" % file_path)
-                torch.save(DeepSpeech.serialize(model, optimizer=optimizer, epoch=epoch, iteration=i,
+
+                if not args.finetune:
+                    torch.save(DeepSpeech.serialize(model, optimizer=optimizer, epoch=epoch, iteration=i,
                                                 loss_results=loss_results,
                                                 wer_results=wer_results, cer_results=cer_results, avg_loss=avg_loss),
                            file_path)
+                else:
+                    torch.save(FinetuningModel.serialize(finetuning_model, optimizer=optimizer, epoch=epoch, iteration=i,
+                                                    loss_results=loss_results,
+                                                    wer_results=wer_results, cer_results=cer_results,
+                                                    avg_loss=avg_loss),
+                               file_path)
+                    print()
             del loss
             del out
         avg_loss /= len(train_sampler)
@@ -313,7 +406,12 @@ if __name__ == '__main__':
 
         start_iter = 0  # Reset start iteration for next epoch
         total_cer, total_wer = 0, 0
-        model.eval()
+
+        if not args.finetune:
+            model.eval()
+        else:
+            finetuning_model.eval()
+
         with torch.no_grad():
             for i, (data) in tqdm(enumerate(test_loader), total=len(test_loader)):
                 inputs, targets, input_percentages, target_sizes = data
@@ -329,7 +427,10 @@ if __name__ == '__main__':
                 if args.cuda:
                     inputs = inputs.cuda()
 
-                out, output_sizes = model(inputs, input_sizes)
+                if not args.finetune:
+                    out, output_sizes = model(inputs, input_sizes)
+                else:
+                    out, output_sizes = finetuning_model(inputs, input_sizes)
 
                 decoded_output, _ = decoder.decode(out.data, output_sizes)
                 target_strings = decoder.convert_to_strings(split_targets)
@@ -377,25 +478,43 @@ if __name__ == '__main__':
                 }
                 tensorboard_writer.add_scalars(args.id, values, epoch + 1)
                 if args.log_params:
-                    for tag, value in model.named_parameters():
-                        tag = tag.replace('.', '/')
-                        tensorboard_writer.add_histogram(tag, to_np(value), epoch + 1)
-                        tensorboard_writer.add_histogram(tag + '/grad', to_np(value.grad), epoch + 1)
+                    if not args.finetune:
+                        for tag, value in model.named_parameters():
+                            tag = tag.replace('.', '/')
+                            tensorboard_writer.add_histogram(tag, to_np(value), epoch + 1)
+                            tensorboard_writer.add_histogram(tag + '/grad', to_np(value.grad), epoch + 1)
+                    else:
+                        for tag, value in finetuning_model.named_parameters():
+                            tag = tag.replace('.', '/')
+                            tensorboard_writer.add_histogram(tag, to_np(value), epoch + 1)
+                            tensorboard_writer.add_histogram(tag + '/grad', to_np(value.grad), epoch + 1)
             if args.checkpoint and main_proc:
                 file_path = '%s/deepspeech_%d.pth' % (save_folder, epoch + 1)
-                torch.save(DeepSpeech.serialize(model, optimizer=optimizer, epoch=epoch, loss_results=loss_results,
-                                                wer_results=wer_results, cer_results=cer_results),
-                           file_path)
+                if not args.finetune:
+                    torch.save(DeepSpeech.serialize(model, optimizer=optimizer, epoch=epoch, loss_results=loss_results,
+                                                    wer_results=wer_results, cer_results=cer_results),
+                               file_path)
+                else:
+                    torch.save(FinetuningModel.serialize(finetuning_model, optimizer=optimizer, epoch=epoch, loss_results=loss_results,
+                                                    wer_results=wer_results, cer_results=cer_results),
+                               file_path)
+                    # print("Save........................")
+                    # print(FinetuningModel.load_model_package(torch.load(file_path)).named_parameters())
                 # anneal lr
                 optim_state = optimizer.state_dict()
                 optim_state['param_groups'][0]['lr'] = optim_state['param_groups'][0]['lr'] / args.learning_anneal
                 optimizer.load_state_dict(optim_state)
                 print('Learning rate annealed to: {lr}'.format(lr=optim_state['param_groups'][0]['lr']))
 
+
             if (best_wer is None or best_wer > wer) and main_proc:
                 print("Found better validated model, saving to %s" % args.model_path)
-                torch.save(DeepSpeech.serialize(model, optimizer=optimizer, epoch=epoch, loss_results=loss_results,
-                                                wer_results=wer_results, cer_results=cer_results), args.model_path)
+                if not args.finetune:
+                    torch.save(DeepSpeech.serialize(model, optimizer=optimizer, epoch=epoch, loss_results=loss_results,
+                                                    wer_results=wer_results, cer_results=cer_results), args.model_path)
+                else:
+                    torch.save(FinetuningModel.serialize(finetuning_model, optimizer=optimizer, epoch=epoch, loss_results=loss_results,
+                                                    wer_results=wer_results, cer_results=cer_results), args.model_path)
                 best_wer = wer
 
                 avg_loss = 0

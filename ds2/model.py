@@ -144,7 +144,6 @@ class Lookahead(nn.Module):
                + 'n_features=' + str(self.n_features) \
                + ', context=' + str(self.context) + ')'
 
-
 class DeepSpeech(nn.Module):
     def __init__(self, rnn_type=nn.LSTM, labels="abc", rnn_hidden_size=768, nb_layers=5, audio_conf=None,
                  bidirectional=True, context=20, layernorm=False):
@@ -333,6 +332,100 @@ class DeepSpeech(nn.Module):
     def is_parallel(model):
         return isinstance(model, torch.nn.parallel.DataParallel) or \
                isinstance(model, torch.nn.parallel.DistributedDataParallel)
+#Added by Angel******
+class FinetuningModel(DeepSpeech):
+    def __init__(self, rnn_type=nn.LSTM, labels="abc", rnn_hidden_size=512, nb_layers=7, audio_conf=None,
+                 bidirectional=True, context=20, layernorm=False):
+        super().__init__(rnn_type, labels, rnn_hidden_size, nb_layers, audio_conf,
+                 bidirectional, context, layernorm)
+
+        num_classes = len(self._labels)
+
+        if layernorm:
+            fully_connected = nn.Sequential(
+                nn.LayerNorm(rnn_hidden_size),
+                nn.Linear(rnn_hidden_size, num_classes, bias=False)
+            )
+        else:
+            fully_connected = nn.Sequential(
+                nn.BatchNorm1d(rnn_hidden_size),
+                nn.Linear(rnn_hidden_size, num_classes, bias=False)
+            )
+        del self.fc
+        del self.inference_softmax
+        self.finetuning_fc = nn.Sequential(
+            SequenceWise(fully_connected)
+        )
+        self.finetuning_inference_softmax = InferenceBatchSoftmax()
+
+    def forward(self, x, lengths):
+        lengths = lengths.cpu().int()
+        output_lengths = self.get_seq_lens(lengths)
+        x, _ = self.conv(x, output_lengths)
+
+        sizes = x.size()
+        x = x.view(sizes[0], sizes[1] * sizes[2], sizes[3])  # Collapse feature dimension
+        x = x.transpose(1, 2).transpose(0, 1).contiguous()  # TxNxH
+
+        for rnn in self.rnns:
+            x = rnn(x, output_lengths)
+
+        if not self._bidirectional:  # no need for lookahead layer in bidirectional
+            x = self.lookahead(x)
+
+        x = self.finetuning_fc(x)
+        x = x.transpose(0, 1)
+        # identity in training mode, softmax in eval mode
+        x = self.finetuning_inference_softmax(x)
+        return x, output_lengths
+
+    @staticmethod
+    def serialize(model, optimizer=None, epoch=None, iteration=None, loss_results=None,
+                  cer_results=None, wer_results=None, avg_loss=None, meta=None):
+        model = model.module if FinetuningModel.is_parallel(model) else model
+        package = {
+            'version': model._version,
+            'hidden_size': model._hidden_size,
+            'hidden_layers': model._hidden_layers,
+            'rnn_type': supported_rnns_inv.get(model._rnn_type, model._rnn_type.__name__.lower()),
+            'audio_conf': model._audio_conf,
+            'labels': model._labels,
+            'state_dict': model.state_dict(),
+            'bidirectional': model._bidirectional,
+            'layernorm': model._layernorm,
+        }
+        if optimizer is not None:
+            package['optim_dict'] = optimizer.state_dict()
+        if avg_loss is not None:
+            package['avg_loss'] = avg_loss
+        if epoch is not None:
+            package['epoch'] = epoch + 1  # increment for readability
+        if iteration is not None:
+            package['iteration'] = iteration
+        if loss_results is not None:
+            package['loss_results'] = loss_results
+            package['cer_results'] = cer_results
+            package['wer_results'] = wer_results
+        if meta is not None:
+            package['meta'] = meta
+        return package
+
+
+    @staticmethod
+    def get_audio_conf(model):
+        return model.module._audio_conf if FinetuningModel.is_parallel(model) else model._audio_conf
+
+    @staticmethod
+    def get_meta(model):
+        m = model.module if FinetuningModel.is_parallel(model) else model
+        meta = {
+            "version": m._version,
+            "hidden_size": m._hidden_size,
+            "hidden_layers": m._hidden_layers,
+            "rnn_type": supported_rnns_inv[m._rnn_type]
+        }
+        return meta
+# Added by Angel******
 
 
 if __name__ == '__main__':
@@ -340,11 +433,12 @@ if __name__ == '__main__':
     import argparse
 
     parser = argparse.ArgumentParser(description='DeepSpeech model information')
-    parser.add_argument('--model-path', default='models/deepspeech_final.pth',
+    parser.add_argument('--model-path', default='/media/ee303/Angel_Drive/MEDICIC/BigA/PretrainA/wave_spec_aug/models/deepspeech_80.pth',
                         help='Path to model file created by training')
     args = parser.parse_args()
     package = torch.load(args.model_path, map_location=lambda storage, loc: storage)
-    model = DeepSpeech.load_model(args.model_path)
+    # model = DeepSpeech.load_model(args.model_path)
+    model = FinetuningModel.load_model(args.model_path)
     print(model)
     print("Model name:         ", os.path.basename(args.model_path))
     print("DeepSpeech version: ", model._version)

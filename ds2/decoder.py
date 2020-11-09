@@ -145,11 +145,10 @@ class BeamCTCDecoder(Decoder):
         offsets = []
 
         for i in range(len(sizes)):
-            bs_str, bs_offset = self.prefix_beam_search(probs[i],sizes[i], lm = self._lm, k = self._beam_width)
-            print(i)
+            # print("sizes[i]",sizes[i])
+            bs_str, bs_offset = self.prefix_beam_search(probs[i].cpu(),sizes[i], lm = self._lm, k = self._beam_width)
             strings.append(bs_str)
             offsets.append(bs_offset)
-
         # probs = probs.cpu()
         # out, scores, offsets, seq_lens = self._decoder.decode(probs, sizes)
         #
@@ -178,8 +177,7 @@ class BeamCTCDecoder(Decoder):
         alphabet = self.labels
 
         F = ctc.shape[1]
-        ctc = np.vstack(
-            (np.zeros(F), ctc))  # just add an imaginative zero'th step (will make indexing more intuitive)
+        ctc = np.vstack((np.zeros(F), ctc))  # just add an imaginative zero'th step (will make indexing more intuitive)
         T = ctc.shape[0]
 
         # STEP 1: Initiliazation
@@ -193,10 +191,11 @@ class BeamCTCDecoder(Decoder):
         # STEP 2: Iterations and pruning
         for t in range(1, each_len):
             pruned_alphabet = [alphabet[i] for i in np.where(ctc[t] > prune)[0]]
-
             for l in A_prev:
-
+                # print("A_prev : ", A_prev, "\n")
+                # print("l : ", l, "\n")
                 for c in pruned_alphabet:
+                    # print("c : ", c, "\n")
                     c_ix = alphabet.index(c)
                     # END: STEP 2
 

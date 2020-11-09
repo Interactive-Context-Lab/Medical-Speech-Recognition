@@ -2,8 +2,8 @@ import os
 import json
 
 
-manifest_file = "/data2/punctuation_AandB/5fold/manifest_punctuation_AandB"
-store_path = "/data2/punctuation_AandB/5fold"
+manifest_file = "/2TB/1/train_manifest.csv"
+store_path = "/2TB/1"
 
 def sep_seq(seq):
     """
@@ -72,3 +72,4 @@ with open(os.path.join(store_path,'C2E.json'), 'w') as outfile:
     json.dump(C2E_dic, outfile,ensure_ascii=False)
     outfile.write('\n')
 
+print("Finish creating E2C C2E.")

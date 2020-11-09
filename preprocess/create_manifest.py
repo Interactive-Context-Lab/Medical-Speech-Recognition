@@ -1,0 +1,111 @@
+"""
+Step 3 of pre-processing
+
+Given the syllable manifest and E2C.json obtained at step 2,
+this program will generate manifest, language model, and label categories.
+
+:data_manifest: the syllable manifest obtained at step 2
+:E2C_file: obtained at step 2
+:splice_manifest: the path about the splice augmentation data
+:lm_cmd_path: the path of language model's executable file
+:out_file: path to save each fold
+"""
+
+import numpy as np
+import os
+import random
+import librosa
+import json
+import argparse
+
+data_manifest = "/dataA/syllable_manifest.csv"
+E2C_file = "/dataA/E2C.json"
+lm_cmd_path = "/home/ee303/Downloads/kenlm/build/bin/lmplz"
+out_file = "/dataA"
+
+parser = argparse.ArgumentParser(description='Create manifest')
+parser.add_argument('--train', dest='train', action='store_true', help='Create train manifest (.csv)')
+parser.add_argument('--test', dest='test', action='store_true', help='Create test manifest (.csv)')
+
+def sep_seq(seq):
+    """
+    return a list of sentence
+    e.g. "Ada{asd}qe{qs}a" -> [A,s,a,{asd},q,e,{qs},a]
+
+    :param seq: input sentence
+    :return: list of sentence
+    """
+    temp = []
+    is_eng_word = False
+    word_temp = ""
+    for c in seq:
+        word_temp = word_temp + c
+        if c == "{" or c == "}" or c == "<" or c == ">":
+            is_eng_word = not is_eng_word
+            if not is_eng_word:
+                temp.append(word_temp)
+                word_temp = ""
+        elif not is_eng_word:
+            temp.append(word_temp)
+            word_temp = ""
+    return temp
+
+if __name__ == '__main__':
+    args = parser.parse_args()
+
+
+    # load all data's path
+    with open(data_manifest, "r") as f:
+        data = f.readlines()
+    data = [a.strip() for a in data]
+
+    if not os.path.exists(out_file): os.makedirs(out_file)
+
+    if args.train:
+        # load E2C_file and replace English words by corresponding chinese words in text label
+        # the replaced text is used to train language model
+        with open(E2C_file) as label_file:
+            E2C = json.load(label_file)
+        with open(os.path.join(out_file, "txt4LM.txt"), "w") as f:
+            for j in data:
+                with open(j.strip().split(",")[1], "r") as lf:
+                    label = lf.readlines()[0].strip()
+                for k in E2C.keys():
+                    if k in label:
+                        label = label.replace(k, E2C[k])
+                f.write(" ".join(label) + "\n")
+        command = lm_cmd_path + " -o 5 --discount_fallback <" + os.path.join(out_file, "txt4LM.txt") +" >" + os.path.join(out_file,"5.arpa")
+        os.system(command)
+
+        # save training data
+        label_kinds = []
+        with open(os.path.join(out_file, "train_manifest.csv"), "w") as f:
+            for j in data:
+                f.write(j + "\n")
+                label_file = j.strip().split(",")[1]
+                with open(label_file, "r") as lf:
+                    label = lf.readlines()[0].strip()
+                for k in sep_seq(label):
+                    if k not in label_kinds:
+                        label_kinds.append(k)
+
+        # save label categories
+        label_kinds.sort()
+        with open(os.path.join(out_file, "label.json"), "w") as f:
+            f.write('["_", ')
+            for j in label_kinds:
+                f.write('"{}", '.format(j))
+            f.write('"{<unk>}", " "]')
+
+        print("Created train manifest.")
+
+    if args.test:
+        # save testing data
+        with open(os.path.join(out_file, "test_manifest.csv"), "w") as f:
+            for j in data:
+                f.write(j + "\n")
+
+        print("Created test manifest.")
+
+
+

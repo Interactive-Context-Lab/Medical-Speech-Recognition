@@ -3,7 +3,7 @@ def add_decoder_args(parser):
                                           "Configurations options for the CTC Beam Search decoder")
     beam_args.add_argument('--top-paths', default=1, type=int, help='number of beams to return')
     beam_args.add_argument('--beam-width', default=40, type=int, help='Beam width to use')
-    beam_args.add_argument('--lm-path', default="/data2/data_B/5-fold/1/5.arpa", type=str,
+    beam_args.add_argument('--lm-path', default=None, type=str,
                            help='Path to an (optional) kenlm language model for use with beam search (req\'d with trie)')
     beam_args.add_argument('--alpha', default=1.1, type=float, help='Language model weight')
     beam_args.add_argument('--beta', default=3, type=float, help='Language model word bonus (all words)')

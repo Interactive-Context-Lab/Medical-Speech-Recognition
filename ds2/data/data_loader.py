@@ -177,6 +177,7 @@ class SpectrogramDataset(Dataset, SpectrogramParser):
     def __getitem__(self, index):
         sample = self.ids[index]
         audio_path, transcript_path = sample[0], sample[1]
+        # audio_name = audio_path.split('/')[5]
         spect = self.parse_audio(audio_path)
         transcript = self.parse_transcript(transcript_path)
         return spect, transcript
@@ -208,6 +209,7 @@ class SpectrogramDataset(Dataset, SpectrogramParser):
 
     def __len__(self):
         return self.size
+
 
 
 def _collate_fn(batch):

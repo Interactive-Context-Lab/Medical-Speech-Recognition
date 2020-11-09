@@ -101,7 +101,7 @@ These are software and framework versions.
 
 
 ## Dataset
-This model only supports for **Medical Speech Corpus in Chinese (MEDICIC)** dataset for training and testing. We provide a `mini_dataset` to make sure you can use this baseline. And if you are using other dataset, you have to reconstruct the dataset directories refer to the following descriptions.
+This model only supports for **Chinese Medical Speech Corpus (ChiMeS)** dataset for training and testing. If you are using other dataset, you have to reconstruct the dataset directories refer to the following descriptions.
 
 Note:
 We use manifest file in `.csv` formation. In this file, each row contains paths of audio file and corresponding text file. For example:
@@ -142,27 +142,24 @@ There are three steps to preprocess dataset follow by these three scripts, and *
         * `E2C.json` is used to replace English words to Chinese words training a Chinese model.
         * `C2E.json` is used to decode to the original English words during testing.
 
-* `5-fold.py` seperates data into 5 folders and organizes audio, label and language model for each training set. Also, we augment the original audios in this script.
+Choose one of them:
+* `create_train4_test1.py` generates training manifest file (with data augmentation), testing manifest, language model, and label categories.
     * Input: `syllable_manifest.csv`, `E2C.json`, `kenlm language model`
-    * Output:
+    * Output: `train_manifest.csv`, `test_manifest.csv`, `n.arpa`(n-gram), `label.json`
     
-        ```
-        5fold/ ─┬─ 1/ ─┬─ augmet/ ─── XXX.wav
-                ├─ 2/  ├─ label.json
-                ├─ 3/  ├─ train_manifest.csv
-                ├─ 4/  ├─ test_manifest.csv
-                └─ 5/  ├─ txt4LM.txt # for langauge model
-                       └─ 5.arpa # for language model
-        ```
-        
-<!--* Choose one of them:
-`create_train4_test1.py` generates training manifest file (with data augmentation), testing manifest, language model, and label categories.
-`create_manifest.py` This script generates manifest (without data augmentation), language model, and label categories. -->
+* `create_manifest.py` This script generates manifest (without data augmentation), language model, and label categories.
+    Use hyper-parameters: **train**, **test**
 
-## Trainning
-The following is the command line for training `mini_dataset` example:
+    * Input: `syllable_manifest.csv`, `E2C.json`, `kenlm language model`
+      * **train**: generates train manifest(.csv), language model, and label categories.
+    	   * Output: `train_manifest.csv`, `n.arpa`(n-gram), `label.json`
+      * **test**: generates test manifest(.csv)
+    	   * Output: `test_manifest.csv`
+
+
+## Training
 ```
-python train.py --train-manifest ../mini_dataset/5fold/1/train_manifest.csv --val-manifest ../mini_dataset/5fold/1/test_manifest.csv --labels-path ../mini_dataset/5fold/1/label.json --batch-size 16 --epochs 150 --lr 5e-5 --rnn-type lstm --hidden-size 512 --layernorm --spec-aug --cuda --checkpoint --save-folder ../mini_dataset/5fold/1/models --model-path ../mini_dataset/5fold/1/models/deepspeech_final.pth
+python train.py --train-manifest /dataA/train_manifest.csv --val-manifest /dataA/test_manifest.csv --batch-size 16 --labels-path /dataA/label.json --checkpoint --cuda --rnn-type lstm --lr 5e-5 --save-folder /dataA/models --model-path /dataA/models/deepspeech_final.pth --hidden-size 512 --visdom --tensorboard --log-dir /dataA/visualize --log-params --epochs 150 --layernorm --spec-aug
 ```
 hyper-parameters:
 * **train-manifest**: path to training set in .csv formation
@@ -179,15 +176,19 @@ hyper-parameters:
 * **checkpoint** : save model weight every epoch
 * **save-folder** : path to save the weight
 * **model-path** : path to the best weight from validation
+* **continue-from** : continue from checkpoint model
+* **finetune** : fine-tune the model
+* **finetune-continue** : continue to train finetuning model(don't need to use --finetune)
 
 Use `python /rain.py -\-help` to get more parameters and options.
 
 Note: You will obtain **model file (.pth)** in your `model-path` every epoch and also a **final model** which is the best model.
 
 ## Testing
-In testing, `test_iter.py` makes prediction and calculates CER and WER (standards to evaluate model) on every models from training process. Command line for `mini_dataset` example:
+In testing, `test_iter.py` makes prediction and calculates CER and WER (standards to evaluate model) on every models from training process.
 ```
-python test_iter.py --test-manifest ../mini_dataset/5fold/1/test_manifest.csv --E2C ../mini_dataset/preprocessed/E2C.json --C2E ../mini_dataset/preprocessed/C2E.json --model-path ../mini_dataset/5fold/1/models --start-epoch 1 --end-epoch 100 --save-path ../mini_dataset/5fold/1/ --decoder beam --lm-path ../mini_dataset/5fold/1/5.arpa --beam-width 40 --alpha 1.1 --beta 3 --cuda
+python test_iter.py --test-manifest /dataA/test_manifest.csv --E2C /dataA/E2C.json --C2E /dataA/C2E.json --save-path /dataA/results/beam --beam-width 40 --lm-path /dataA/5.arpa --alpha 1.1 --beta 3 --cuda --decoder beam --model-path /dataA/models
+ --start-epoch 1 --end-epoch 150 
 ```
 
 * **test-manifest**: path to testing set in .csv formation
@@ -206,5 +207,6 @@ Use `python test_iter.py -\-help` to get more parameters and options.
 
 
 
-## Demo
-[![影片連結](http://img.youtube.com/vi/AQ78hGx3usc/0.jpg)](http://www.youtube.com/watch?v=AQ78hGx3usc "")
+<!-- ## Demo
+[![影片連結](http://img.youtube.com/vi/AQ78hGx3usc/0.jpg)](http://www.youtube.com/watch?v=AQ78hGx3usc "") -->
+

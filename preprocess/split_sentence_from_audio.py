@@ -23,14 +23,10 @@ import wave
 import xml.etree.cElementTree as ET
 import numpy as np
 
-#############################
-#   Mini dataset example
-#############################
-file_dir = "../mini_dataset/labeled_audio/"
-# you can list subfiles in sub_file
-# sub_file = ["20190522","20190524","20190530","20190605"]
-sub_file = ["0724"]
-preprocessed_dir = "../mini_dataset/preprocessed"
+
+file_dir = "/data2/data_B/labeled_audio"
+sub_file = ["20190522","20190524","20190530","20190605"]
+preprocessed_dir = "/data2/data_B/preprocessed"
 
 def CUT_ANOTED(XML_FILE, WAVE_FILE):
     """

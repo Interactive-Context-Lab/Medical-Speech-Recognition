@@ -103,6 +103,8 @@ These are software and framework versions.
 ## Dataset
 This model only supports for **Chinese Medical Speech Corpus (ChiMeS)** dataset for training and testing. If you are using other dataset, you have to reconstruct the dataset directories refer to the following descriptions.
 
+**ChiMeS dataset is released on https://iclab.ee.ntust.edu.tw/chimes-dataset/home**, so you can download it and use this baseline by the following descriptions.
+
 Note:
 We use manifest file in `.csv` formation. In this file, each row contains paths of audio file and corresponding text file. For example:
 ```
